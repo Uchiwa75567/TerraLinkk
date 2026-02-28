@@ -21,6 +21,7 @@ const HERO_IMAGE = "https://storage.googleapis.com/dala-prod-public-storage/gene
 const FARMER_IMG = "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/farmer-illustration-e407138e-1772289763337.webp";
 const SELLER_IMG = "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/seller-illustration-78497a20-1772289762732.webp";
 const OWNER_IMG = "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/owner-illustration-b853e5b8-1772289763852.webp";
+const PORTAL_BG_VIDEO = "/video.mp4";
 const TEAM_MEMBERS = [
   {
     name: "Anta Seck",
@@ -59,21 +60,30 @@ const LandingPage = () => {
   const approvedAnnouncements = listApprovedAnnouncements().slice(0, 6);
 
   return (
-    <div className="bg-[#F5F5F0] min-h-screen">
+    <div className="min-h-screen relative overflow-hidden">
+      <video
+        className="fixed inset-0 w-full h-full object-cover pointer-events-none"
+        autoPlay
+        muted
+        loop
+        playsInline
+      >
+        <source src={PORTAL_BG_VIDEO} type="video/mp4" />
+      </video>
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
+      <section className="relative pt-32 pb-20 overflow-hidden z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="z-10">
-              <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-6">
+              <span className="inline-block px-4 py-1.5 bg-black/35 text-white rounded-full text-sm font-semibold mb-6">
                 Révolutionner l'Agriculture
               </span>
-              <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 leading-tight mb-8">
-                Connecter les agriculteurs aux <span className="text-primary">Ressources Agricoles</span>
+              <h1 className="text-5xl lg:text-7xl font-bold text-white leading-tight mb-8">
+                Connecter les agriculteurs aux <span className="text-[#C8E6C9]">Ressources Agricoles</span>
               </h1>
-              <p className="text-xl text-gray-600 mb-10 max-w-xl">
+              <p className="text-xl text-slate-100 mb-10 max-w-xl">
                 La place de marché moderne pour les semences, la location d'équipement et les services agricoles professionnels. Tout au même endroit.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -101,7 +111,7 @@ const LandingPage = () => {
       </section>
 
       {/* Comment ça marche */}
-      <section id="comment-ca-marche" className="py-24 bg-white">
+      <section id="comment-ca-marche" className="relative z-10 py-24 bg-white/92 backdrop-blur-[1px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Comment fonctionne TerraLink</h2>
@@ -144,7 +154,7 @@ const LandingPage = () => {
       </section>
 
       {/* Pour qui */}
-      <section id="pour-qui" className="py-24 bg-[#F5F5F0]">
+      <section id="pour-qui" className="relative z-10 py-24 bg-[#F5F5F0]/92 backdrop-blur-[1px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Pour qui est TerraLink ?</h2>
@@ -198,7 +208,7 @@ const LandingPage = () => {
       </section>
 
       {/* Témoignages */}
-      <section className="py-24 bg-white">
+      <section className="relative z-10 py-24 bg-white/92 backdrop-blur-[1px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
@@ -244,7 +254,7 @@ const LandingPage = () => {
       </section>
 
       {/* Annonces validées */}
-      <section id="annonces-validees" className="py-24 bg-white">
+      <section id="annonces-validees" className="relative z-10 py-24 bg-white/92 backdrop-blur-[1px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <h2 className="text-4xl font-bold text-gray-900 mb-3">Annonces validées</h2>
@@ -277,7 +287,7 @@ const LandingPage = () => {
       </section>
 
       {/* Annuaire public */}
-      <section id="annuaire" className="py-24 bg-[#F5F5F0]">
+      <section id="annuaire" className="relative z-10 py-24 bg-[#F5F5F0]/92 backdrop-blur-[1px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10">
             <div>
@@ -311,7 +321,7 @@ const LandingPage = () => {
       </section>
 
       {/* Equipe */}
-      <section id="equipe" className="py-24 bg-white">
+      <section id="equipe" className="relative z-10 py-24 bg-white/92 backdrop-blur-[1px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <h2 className="text-4xl font-bold text-gray-900 mb-3">Equipe a l'origine de TerraLink</h2>
