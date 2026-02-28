@@ -21,6 +21,38 @@ const HERO_IMAGE = "https://storage.googleapis.com/dala-prod-public-storage/gene
 const FARMER_IMG = "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/farmer-illustration-e407138e-1772289763337.webp";
 const SELLER_IMG = "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/seller-illustration-78497a20-1772289762732.webp";
 const OWNER_IMG = "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/owner-illustration-b853e5b8-1772289763852.webp";
+const TEAM_MEMBERS = [
+  {
+    name: "Anta Seck",
+    role: "Chargee de production",
+    image: "/image1.jpeg",
+  },
+  {
+    name: "Germaine Sarr",
+    role: "Chargee de marketing",
+    image: "/image2.jpeg",
+  },
+  {
+    name: "Sokhna Aminata Rassoul Diouf",
+    role: "Chef de startup",
+    image: "/image3.jpeg",
+  },
+  {
+    name: "Jean Michel Waly Gueye",
+    role: "Charge de finance et ressources",
+    image: "/image4.jpeg",
+  },
+  {
+    name: "Gora Diop",
+    role: "Chef de projet",
+    image: "/image5.jpeg",
+  },
+  {
+    name: "Fatou Ba",
+    role: "Chef d'equipe",
+    image: "/image6.jpeg",
+  },
+];
 
 const LandingPage = () => {
   const publicProfiles = getPublicProfiles().filter((p) => p.role !== "admin").slice(0, 6);
@@ -274,6 +306,32 @@ const LandingPage = () => {
                 </Link>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Equipe */}
+      <section id="equipe" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-4xl font-bold text-gray-900 mb-3">Equipe a l'origine de TerraLink</h2>
+            <p className="text-gray-600">
+              Les personnes qui portent la vision et le developpement de la plateforme.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {TEAM_MEMBERS.map((member) => (
+              <div
+                key={member.name}
+                className="bg-[#F5F5F0] rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg transition-shadow"
+              >
+                <img src={member.image} alt={member.name} className="w-full h-64 object-cover" />
+                <div className="p-5">
+                  <h3 className="text-lg font-bold text-slate-900">{member.name}</h3>
+                  <p className="text-sm text-slate-600 mt-1">{member.role}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

@@ -27,6 +27,8 @@ export const FarmerDashboard: React.FC = () => {
     farmPhoto: "",
   });
   const ordersRef = useRef<HTMLDivElement | null>(null);
+  const knownApprovedNoticeIdsRef = useRef<Set<string>>(new Set());
+  const farmerNotifKey = user ? `terra_notified_farmer_notices_${user.id}` : "";
 
   const refreshData = () => {
     setResources(listApprovedResources());
@@ -39,6 +41,52 @@ export const FarmerDashboard: React.FC = () => {
   useEffect(() => {
     refreshData();
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const initKnownApproved = () => {
+      const currentApprovedIds = listFarmerNotices(user.id)
+        .filter((n) => n.status === "approved")
+        .map((n) => n.id);
+      const saved = localStorage.getItem(farmerNotifKey);
+      if (!saved) {
+        localStorage.setItem(farmerNotifKey, JSON.stringify(currentApprovedIds));
+        knownApprovedNoticeIdsRef.current = new Set(currentApprovedIds);
+        return;
+      }
+      try {
+        const parsed = JSON.parse(saved) as string[];
+        knownApprovedNoticeIdsRef.current = new Set(parsed);
+      } catch {
+        knownApprovedNoticeIdsRef.current = new Set(currentApprovedIds);
+        localStorage.setItem(farmerNotifKey, JSON.stringify(currentApprovedIds));
+      }
+    };
+
+    initKnownApproved();
+
+    const watchApprovals = () => {
+      const latestNotices = listFarmerNotices(user.id);
+      setMyNotices(latestNotices);
+      setResources(listApprovedResources());
+      setMyRequests(listFarmerRequests(user.id));
+
+      const latestApproved = latestNotices.filter((n) => n.status === "approved");
+      const known = knownApprovedNoticeIdsRef.current;
+      const newlyApproved = latestApproved.filter((n) => !known.has(n.id));
+      if (newlyApproved.length > 0) {
+        newlyApproved.forEach((notice) => {
+          toast.success(`Votre annonce "${notice.title}" a ete validee par l'administrateur.`);
+          known.add(notice.id);
+        });
+        localStorage.setItem(farmerNotifKey, JSON.stringify(Array.from(known)));
+      }
+    };
+
+    const interval = window.setInterval(watchApprovals, 5000);
+    return () => window.clearInterval(interval);
+  }, [user, farmerNotifKey]);
 
   useEffect(() => {
     const section = searchParams.get("section");

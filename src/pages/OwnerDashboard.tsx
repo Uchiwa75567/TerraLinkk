@@ -25,6 +25,8 @@ export const OwnerDashboard: React.FC = () => {
   const topRef = useRef<HTMLDivElement | null>(null);
   const fleetRef = useRef<HTMLDivElement | null>(null);
   const rentalsRef = useRef<HTMLDivElement | null>(null);
+  const knownApprovedEquipmentIdsRef = useRef<Set<string>>(new Set());
+  const ownerNotifKey = user ? `terra_notified_owner_equipment_${user.id}` : "";
   const [newEquipment, setNewEquipment] = useState({
     name: "",
     price: "",
@@ -101,6 +103,54 @@ export const OwnerDashboard: React.FC = () => {
       setTimeout(() => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const initKnownApproved = () => {
+      const approvedIds = listOwnerListings(user.id, "tracteur")
+        .filter((e) => e.status === "approved")
+        .map((e) => e.id);
+      const saved = localStorage.getItem(ownerNotifKey);
+      if (!saved) {
+        localStorage.setItem(ownerNotifKey, JSON.stringify(approvedIds));
+        knownApprovedEquipmentIdsRef.current = new Set(approvedIds);
+        return;
+      }
+      try {
+        const parsed = JSON.parse(saved) as string[];
+        knownApprovedEquipmentIdsRef.current = new Set(parsed);
+      } catch {
+        knownApprovedEquipmentIdsRef.current = new Set(approvedIds);
+        localStorage.setItem(ownerNotifKey, JSON.stringify(approvedIds));
+      }
+    };
+
+    initKnownApproved();
+
+    const watchApprovals = () => {
+      const latestEquipment = listOwnerListings(user.id, "tracteur");
+
+      const latestApproved = latestEquipment.filter((e) => e.status === "approved");
+      const known = knownApprovedEquipmentIdsRef.current;
+      const newlyApproved = latestApproved.filter((e) => !known.has(e.id));
+
+      if (newlyApproved.length > 0) {
+        newlyApproved.forEach((equipmentItem) => {
+          toast.success(
+            `Votre equipement "${equipmentItem.name}" a ete valide par l'administrateur.`,
+          );
+          known.add(equipmentItem.id);
+        });
+        localStorage.setItem(ownerNotifKey, JSON.stringify(Array.from(known)));
+      }
+
+      setRefreshToken((v) => v + 1);
+    };
+
+    const interval = window.setInterval(watchApprovals, 5000);
+    return () => window.clearInterval(interval);
+  }, [user, ownerNotifKey]);
 
   return (
     <DashboardLayout>
