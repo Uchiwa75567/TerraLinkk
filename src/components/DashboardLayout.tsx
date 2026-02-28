@@ -6,7 +6,9 @@ import {
   Tractor, 
   Users, 
   Bell,
-  ChevronRight
+  ChevronRight,
+  Menu,
+  X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -17,6 +19,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('section') || 'aperçu');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const getNavItems = () => {
     const common = [
@@ -61,6 +64,13 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
 
   const navItems = getNavItems();
   const currentSection = searchParams.get('section') || activeTab;
+  const handleSectionChange = (sectionId: string) => {
+    setActiveTab(sectionId);
+    const params = new URLSearchParams(searchParams);
+    params.set('section', sectionId);
+    setSearchParams(params);
+    setMobileMenuOpen(false);
+  };
 
   const tabLabels: Record<string, string> = {
     aperçu: 'Tableau de bord',
@@ -115,12 +125,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => {
-                setActiveTab(item.id);
-                const params = new URLSearchParams(searchParams);
-                params.set('section', item.id);
-                setSearchParams(params);
-              }}
+              onClick={() => handleSectionChange(item.id)}
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all",
                 currentSection === item.id
@@ -166,6 +171,13 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
             <div className="w-8 h-8 rounded-full bg-slate-100 md:hidden overflow-hidden">
                <img src={user?.avatar} alt="" />
             </div>
+            <button
+              className="md:hidden p-2 text-slate-600 hover:text-slate-900"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Ouvrir le menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
           </div>
         </header>
 
@@ -173,6 +185,65 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
           {children}
         </div>
       </main>
+
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-40">
+          <button
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Fermer le menu"
+          />
+          <div className="absolute right-0 top-0 h-full w-80 max-w-[90vw] bg-white shadow-2xl border-l border-slate-200 p-4 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <Link to="/" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
+                <img src="/terralink-logo.png" alt="Logo TerraLink" className="w-10 h-10 rounded-md object-cover" />
+                <span className="text-lg font-bold text-[#1B5E20]">TerraLink</span>
+              </Link>
+              <button
+                className="p-2 text-slate-500 hover:text-slate-800"
+                onClick={() => setMobileMenuOpen(false)}
+                aria-label="Fermer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3 px-2 py-3 mb-3 border border-slate-100 rounded-xl">
+              <img src={user?.avatar} className="w-10 h-10 rounded-full bg-slate-100 object-cover" alt="" />
+              <div className="overflow-hidden">
+                <p className="text-sm font-bold truncate">{user?.name}</p>
+                <p className="text-[10px] text-slate-400">{roleLabel}</p>
+              </div>
+            </div>
+
+            <nav className="flex-1 space-y-1">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleSectionChange(item.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all",
+                    currentSection === item.id
+                      ? "bg-[#1B5E20] text-white"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                  )}
+                >
+                  {item.icon}
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+
+            <button
+              onClick={() => { setMobileMenuOpen(false); logout(); navigate('/'); }}
+              className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold text-red-500 bg-red-50 hover:bg-red-100 transition-all"
+            >
+              <LogOut className="w-5 h-5" />
+              Déconnexion
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
