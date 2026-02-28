@@ -1,0 +1,79 @@
+{
+  "users": {
+    "usr_admin_terralink_com": {
+      "id": "usr_admin_terralink_com",
+      "name": "Admin TerraLink",
+      "email": "admin@terralink.com",
+      "role": "admin",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=admin@terralink.com",
+      "profile": {
+        "contact": "+221700000000",
+        "localisation": "Dakar, Sénégal",
+        "departement": "Administration"
+      },
+      "passwordHash": "e86f78a8a3caf0b60d8e74e5942aa6d86dc150cd3c03338aef25b7d2d7e3acc7",
+      "createdAt": "2026-02-28T00:00:00.000Z",
+      "updatedAt": "2026-02-28T00:00:00.000Z"
+    }
+  },
+  "marketplace": {
+    "listings": [
+      {
+        "id": "lst-seed-1",
+        "type": "semence",
+        "name": "Maïs Hybride Premium",
+        "price": "25€/sac",
+        "location": "Nairobi, KE",
+        "rating": 4.8,
+        "img": "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/seeds-variety-eaef3e04-1772288996363.webp",
+        "stock": 45,
+        "ownerId": "seller_demo_1",
+        "ownerName": "Vendeur Démo",
+        "status": "approved",
+        "createdAt": "2026-02-28T00:00:00.000Z"
+      },
+      {
+        "id": "lst-seed-2",
+        "type": "semence",
+        "name": "Soja Bio",
+        "price": "30€/sac",
+        "location": "Eldoret, KE",
+        "rating": 4.5,
+        "img": "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/seed-warehouse-0d49e033-1772288681575.webp",
+        "stock": 12,
+        "ownerId": "seller_demo_1",
+        "ownerName": "Vendeur Démo",
+        "status": "approved",
+        "createdAt": "2026-02-28T00:00:00.000Z"
+      },
+      {
+        "id": "lst-tractor-1",
+        "type": "tracteur",
+        "name": "John Deere 5075E",
+        "price": "120€/jour",
+        "location": "Nakuru, KE",
+        "rating": 4.9,
+        "img": "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/tractor-main-bd4aac23-1772288996591.webp",
+        "ownerId": "owner_demo_1",
+        "ownerName": "Loueur Démo",
+        "status": "approved",
+        "createdAt": "2026-02-28T00:00:00.000Z"
+      },
+      {
+        "id": "lst-tractor-2",
+        "type": "tracteur",
+        "name": "Massey Ferguson 240",
+        "price": "80€/jour",
+        "location": "Kisumu, KE",
+        "rating": 4.7,
+        "img": "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/tractor-rental-cd75fcfa-1772288681160.webp",
+        "ownerId": "owner_demo_1",
+        "ownerName": "Loueur Démo",
+        "status": "approved",
+        "createdAt": "2026-02-28T00:00:00.000Z"
+      }
+    ],
+    "requests": [],
+    "farmerNotices": []
+  }
+}
