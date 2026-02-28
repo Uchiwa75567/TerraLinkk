@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { 
   LayoutDashboard, 
-  Settings, 
   LogOut, 
-  Leaf, 
   Package, 
   Tractor, 
   Users, 
@@ -108,9 +106,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
       <aside className="w-64 bg-white/95 border-r border-slate-200 hidden md:flex flex-col fixed h-full z-20 backdrop-blur-sm">
         <div className="p-6">
           <Link to="/" className="flex items-center gap-2">
-            <div className="bg-[#1B5E20] p-1.5 rounded-lg">
-              <Leaf className="w-5 h-5 text-white" />
-            </div>
+            <img src="/terralink-logo.png" alt="Logo TerraLink" className="w-12 h-12 rounded-md object-cover" />
             <span className="text-xl font-bold text-[#1B5E20]">TerraLink</span>
           </Link>
         </div>

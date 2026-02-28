@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, UserRole, UserProfile } from '../context/AuthContext';
-import { Leaf, Mail, User, CheckCircle2 } from 'lucide-react';
+import { Mail, User, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AUTH_BG = "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/auth-bg-28b13e38-1772289441656.webp";
@@ -39,7 +39,7 @@ export const LoginPage: React.FC = () => {
       <div className="w-full max-w-md z-10 p-4">
         <div className="text-center mb-10">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="bg-[#1B5E20] p-2 rounded-xl"><Leaf className="w-6 h-6 text-white" /></div>
+            <img src="/terralink-logo.png" alt="Logo TerraLink" className="w-14 h-14 rounded-xl object-cover" />
             <span className="text-2xl font-bold text-[#1B5E20]">TerraLink</span>
           </Link>
           <h1 className="text-2xl font-bold text-slate-900">Bon Retour</h1>
@@ -235,7 +235,7 @@ export const RegisterPage: React.FC = () => {
       <div className="w-full max-w-3xl z-10 p-4">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="bg-[#1B5E20] p-2 rounded-xl"><Leaf className="w-6 h-6 text-white" /></div>
+            <img src="/terralink-logo.png" alt="Logo TerraLink" className="w-14 h-14 rounded-xl object-cover" />
             <span className="text-2xl font-bold text-[#1B5E20]">TerraLink</span>
           </Link>
           <h1 className="text-2xl font-bold text-slate-900">Créer un Compte</h1>

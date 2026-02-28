@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf, Mail, Phone, MapPin, Facebook, Twitter, Instagram } from 'lucide-react';
+import { Mail, Phone, MapPin, Facebook, Twitter, Instagram } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
@@ -9,7 +9,7 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-2">
-              <Leaf className="w-6 h-6 text-[#66BB6A]" />
+              <img src="/terralink-logo.png" alt="Logo TerraLink" className="w-10 h-10 rounded-md object-cover" />
               <span className="text-xl font-bold text-white">TerraLink</span>
             </Link>
             <p className="text-sm leading-relaxed">
@@ -46,7 +46,7 @@ export const Footer: React.FC = () => {
             <h4 className="text-white font-semibold mb-4">Contact</h4>
             <ul className="space-y-2 text-sm">
               <li className="flex items-center gap-2"><Mail className="w-4 h-4" /> support@terralink.com</li>
-              <li className="flex items-center gap-2"><Phone className="w-4 h-4" /> +1 (555) 000-0000</li>
+              <li className="flex items-center gap-2"><Phone className="w-4 h-4" /> +221 77 486 79 60</li>
               <li className="flex items-center gap-2"><MapPin className="w-4 h-4" /> 123 Rue de l'Agriculture, Fermeville</li>
             </ul>
           </div>

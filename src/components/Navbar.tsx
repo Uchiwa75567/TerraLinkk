@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Menu, X, Leaf } from 'lucide-react';
+import { LogOut, Menu, X } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -18,9 +18,11 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="bg-[#1B5E20] p-1.5 rounded-lg group-hover:scale-110 transition-transform">
-              <Leaf className="w-6 h-6 text-white" />
-            </div>
+            <img
+              src="/terralink-logo.png"
+              alt="Logo TerraLink"
+              className="w-14 h-14 rounded-lg object-cover group-hover:scale-110 transition-transform"
+            />
             <span className="text-xl font-bold text-[#1B5E20] tracking-tight">TerraLink</span>
           </Link>
 
