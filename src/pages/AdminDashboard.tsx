@@ -10,11 +10,14 @@ import {
   updateListingStatus,
 } from "../lib/marketplace";
 import { useSearchParams } from "react-router-dom";
+import { Spinner } from "../components/ui/spinner";
 
 export const AdminDashboard: React.FC = () => {
   const [searchParams] = useSearchParams();
   const currentSection = searchParams.get("section") || "aperçu";
   const [refreshToken, setRefreshToken] = useState(0);
+  const [pendingListingIds, setPendingListingIds] = useState<Record<string, boolean>>({});
+  const [pendingNoticeIds, setPendingNoticeIds] = useState<Record<string, boolean>>({});
   const topRef = useRef<HTMLDivElement | null>(null);
   const usersRef = useRef<HTMLDivElement | null>(null);
   const moderationRef = useRef<HTMLDivElement | null>(null);
@@ -50,15 +53,27 @@ export const AdminDashboard: React.FC = () => {
   ];
 
   const moderate = (listingId: string, action: "approved" | "rejected") => {
-    updateListingStatus(listingId, action);
-    setRefreshToken((v) => v + 1);
-    toast.success(action === "approved" ? "Annonce approuvée" : "Annonce rejetée");
+    if (pendingListingIds[listingId]) return;
+    setPendingListingIds((v) => ({ ...v, [listingId]: true }));
+    try {
+      updateListingStatus(listingId, action);
+      setRefreshToken((v) => v + 1);
+      toast.success(action === "approved" ? "Annonce approuvée" : "Annonce rejetée");
+    } finally {
+      setPendingListingIds((v) => ({ ...v, [listingId]: false }));
+    }
   };
 
   const moderateNotice = (noticeId: string, action: "approved" | "rejected") => {
-    updateFarmerNoticeStatus(noticeId, action);
-    setRefreshToken((v) => v + 1);
-    toast.success(action === "approved" ? "Annonce agriculteur approuvée" : "Annonce agriculteur rejetée");
+    if (pendingNoticeIds[noticeId]) return;
+    setPendingNoticeIds((v) => ({ ...v, [noticeId]: true }));
+    try {
+      updateFarmerNoticeStatus(noticeId, action);
+      setRefreshToken((v) => v + 1);
+      toast.success(action === "approved" ? "Annonce agriculteur approuvée" : "Annonce agriculteur rejetée");
+    } finally {
+      setPendingNoticeIds((v) => ({ ...v, [noticeId]: false }));
+    }
   };
 
   useEffect(() => {
@@ -129,16 +144,20 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => moderate(listing.id, "approved")}
-                    className="p-2 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-colors"
+                    disabled={!!pendingListingIds[listing.id]}
+                    className="p-2 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-colors disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center gap-1"
                     title="Approuver"
                   >
+                    {pendingListingIds[listing.id] && <Spinner className="text-green-600 size-3" />}
                     <Check className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => moderate(listing.id, "rejected")}
-                    className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
+                    disabled={!!pendingListingIds[listing.id]}
+                    className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center gap-1"
                     title="Rejeter"
                   >
+                    {pendingListingIds[listing.id] && <Spinner className="text-red-600 size-3" />}
                     <X className="w-5 h-5" />
                   </button>
                 </div>
@@ -158,16 +177,20 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => moderateNotice(notice.id, "approved")}
-                    className="p-2 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-colors"
+                    disabled={!!pendingNoticeIds[notice.id]}
+                    className="p-2 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-colors disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center gap-1"
                     title="Approuver"
                   >
+                    {pendingNoticeIds[notice.id] && <Spinner className="text-green-600 size-3" />}
                     <Check className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => moderateNotice(notice.id, "rejected")}
-                    className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
+                    disabled={!!pendingNoticeIds[notice.id]}
+                    className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center gap-1"
                     title="Rejeter"
                   >
+                    {pendingNoticeIds[notice.id] && <Spinner className="text-red-600 size-3" />}
                     <X className="w-5 h-5" />
                   </button>
                 </div>

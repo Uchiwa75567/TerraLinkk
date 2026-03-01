@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, UserRole, UserProfile } from '../context/AuthContext';
 import { Mail, User, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Spinner } from '../components/ui/spinner';
 
 const AUTH_BG = "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/auth-bg-28b13e38-1772289441656.webp";
 
@@ -10,18 +11,26 @@ export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<UserRole>('farmer');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await login(email, password, role);
-    if (!result.ok) {
-      toast.error(result.message || "Connexion impossible.");
-      return;
+    setIsSubmitting(true);
+    try {
+      const result = await login(email, password, role);
+      if (!result.ok) {
+        toast.error(result.message || "Connexion impossible.");
+        return;
+      }
+      toast.success("Bon retour sur TerraLink !");
+      navigate('/dashboard');
+    } catch (error) {
+      toast.error(`Connexion impossible: ${error instanceof Error ? error.message : 'Erreur inconnue.'}`);
+    } finally {
+      setIsSubmitting(false);
     }
-    toast.success("Bon retour sur TerraLink !");
-    navigate('/dashboard');
   };
 
   const roleLabels: Record<UserRole, string> = {
@@ -71,7 +80,13 @@ export const LoginPage: React.FC = () => {
                 ))}
               </div>
             </div>
-            <button className="w-full bg-[#1B5E20] text-white py-4 rounded-xl font-bold hover:bg-[#1B5E20]/90 transition-colors shadow-lg shadow-green-900/10">Se connecter</button>
+            <button
+              disabled={isSubmitting}
+              className="w-full bg-[#1B5E20] text-white py-4 rounded-xl font-bold hover:bg-[#1B5E20]/90 transition-colors shadow-lg shadow-green-900/10 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isSubmitting && <Spinner className="text-white" />}
+              Se connecter
+            </button>
           </form>
           <p className="mt-8 text-center text-sm text-slate-500">Pas encore de compte ? <Link to="/register" className="text-[#1B5E20] font-bold">En créer un</Link></p>
         </div>
@@ -87,6 +102,7 @@ export const RegisterPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [avatar, setAvatar] = useState('');
   const [role, setRole] = useState<UserRole>('farmer');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [farmerForm, setFarmerForm] = useState({
     contact: '',
     localisation: '',
@@ -164,44 +180,47 @@ export const RegisterPage: React.FC = () => {
   };
 
   const validateRoleForm = () => {
+    const missing: string[] = [];
     if (role === 'farmer') {
-      return (
-        farmerForm.contact &&
-        farmerForm.localisation &&
-        farmerForm.culturesPrincipales &&
-        farmerForm.tailleExploitation &&
-        farmerForm.nombreEmployes &&
-        farmerForm.photoExploitation
-      );
+      if (!farmerForm.contact) missing.push("contact");
+      if (!farmerForm.localisation) missing.push("localisation");
+      if (!farmerForm.culturesPrincipales) missing.push("cultures principales");
+      if (!farmerForm.tailleExploitation) missing.push("taille de l'exploitation");
+      if (!farmerForm.nombreEmployes) missing.push("nombre d'employés");
+      if (!farmerForm.photoExploitation) missing.push("photo de l'exploitation");
+      return missing;
     }
     if (role === 'seller') {
-      return (
-        sellerForm.contact &&
-        sellerForm.localisation &&
-        sellerForm.entreprise &&
-        sellerForm.categoriesProduits &&
-        sellerForm.capaciteStock &&
-        sellerForm.photoCommerce
-      );
+      if (!sellerForm.contact) missing.push("contact");
+      if (!sellerForm.localisation) missing.push("localisation");
+      if (!sellerForm.entreprise) missing.push("entreprise");
+      if (!sellerForm.categoriesProduits) missing.push("produits principaux");
+      if (!sellerForm.capaciteStock) missing.push("capacité de stock");
+      if (!sellerForm.photoCommerce) missing.push("photo du commerce/stock");
+      return missing;
     }
     if (role === 'owner') {
-      return (
-        ownerForm.contact &&
-        ownerForm.localisation &&
-        ownerForm.regionService &&
-        ownerForm.machinesDisponibles &&
-        ownerForm.tarifHoraireMoyen &&
-        ownerForm.photoParc
-      );
+      if (!ownerForm.contact) missing.push("contact");
+      if (!ownerForm.localisation) missing.push("localisation");
+      if (!ownerForm.regionService) missing.push("région d'opération");
+      if (!ownerForm.machinesDisponibles) missing.push("machines disponibles");
+      if (!ownerForm.tarifHoraireMoyen) missing.push("tarif horaire moyen");
+      if (!ownerForm.photoParc) missing.push("photo du parc machines");
+      return missing;
     }
     if (role === 'admin') {
-      return adminForm.contact && adminForm.localisation && adminForm.departement;
+      if (!adminForm.contact) missing.push("contact");
+      if (!adminForm.localisation) missing.push("localisation");
+      if (!adminForm.departement) missing.push("département");
+      return missing;
     }
-    return false;
+    return ["rôle invalide"];
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    try {
     if (!name || !email || !role) {
       toast.error('Complète le nom, email et rôle.');
       return;
@@ -214,17 +233,23 @@ export const RegisterPage: React.FC = () => {
       toast.error('La confirmation du mot de passe ne correspond pas.');
       return;
     }
-    if (!validateRoleForm()) {
-      toast.error('Merci de remplir toutes les informations demandées pour ce rôle.');
+    const missingFields = validateRoleForm();
+    if (missingFields.length > 0) {
+      toast.error(`Inscription impossible: champs manquants (${missingFields.join(", ")}).`);
       return;
     }
     const result = await register(name, email, password, role, buildProfile(), avatar);
     if (!result.ok) {
-      toast.error(result.message || "Inscription impossible.");
+      toast.error(result.message ? `Inscription impossible: ${result.message}` : "Inscription impossible.");
       return;
     }
     toast.success(`Bienvenue à bord, ${name} !`);
     navigate('/dashboard');
+    } catch (error) {
+      toast.error(`Inscription impossible: ${error instanceof Error ? error.message : "Erreur inconnue."}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -342,7 +367,13 @@ export const RegisterPage: React.FC = () => {
                 <input value={adminForm.departement} onChange={(e) => setAdminForm((v) => ({ ...v, departement: e.target.value }))} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none" placeholder="Département" />
               </div>
             )}
-            <button className="w-full bg-[#1B5E20] text-white py-4 rounded-xl font-bold hover:bg-[#1B5E20]/90 transition-colors shadow-lg shadow-green-900/10">Commencer</button>
+            <button
+              disabled={isSubmitting}
+              className="w-full bg-[#1B5E20] text-white py-4 rounded-xl font-bold hover:bg-[#1B5E20]/90 transition-colors shadow-lg shadow-green-900/10 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isSubmitting && <Spinner className="text-white" />}
+              Commencer
+            </button>
           </form>
           <p className="mt-6 text-center text-sm text-slate-500">Vous avez déjà un compte ? <Link to="/login" className="text-[#1B5E20] font-bold">Se connecter</Link></p>
         </div>

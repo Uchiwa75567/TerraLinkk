@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 import { useSearchParams } from "react-router-dom";
 import { createFarmerNotice, listFarmerNotices } from "../lib/marketplace";
 import { listApprovedAnnouncements } from "../lib/marketplace";
+import { Spinner } from "../components/ui/spinner";
 
 export const FarmerDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -18,6 +19,8 @@ export const FarmerDashboard: React.FC = () => {
   const [resources, setResources] = useState(listApprovedResources());
   const [myRequests, setMyRequests] = useState(user ? listFarmerRequests(user.id) : []);
   const [myNotices, setMyNotices] = useState(user ? listFarmerNotices(user.id) : []);
+  const [isCreatingNotice, setIsCreatingNotice] = useState(false);
+  const [pendingRequestIds, setPendingRequestIds] = useState<Record<string, boolean>>({});
   const [showNoticeForm, setShowNoticeForm] = useState(false);
   const [noticeForm, setNoticeForm] = useState({
     title: "",
@@ -118,22 +121,28 @@ export const FarmerDashboard: React.FC = () => {
       toast.error("Vous devez être connecté.");
       return;
     }
+    if (pendingRequestIds[listingId]) return;
 
     const listing = resources.find((item) => item.id === listingId);
     if (!listing) return;
 
-    createRequest({
-      listingId: listing.id,
-      listingName: listing.name,
-      listingType: listing.type,
-      farmerId: user.id,
-      farmerName: user.name,
-      providerId: listing.ownerId,
-      providerName: listing.ownerName,
-    });
+    setPendingRequestIds((v) => ({ ...v, [listingId]: true }));
+    try {
+      createRequest({
+        listingId: listing.id,
+        listingName: listing.name,
+        listingType: listing.type,
+        farmerId: user.id,
+        farmerName: user.name,
+        providerId: listing.ownerId,
+        providerName: listing.ownerName,
+      });
 
-    refreshData();
-    toast.success(`Demande envoyée pour ${listing.name}`);
+      refreshData();
+      toast.success(`Demande envoyée pour ${listing.name}`);
+    } finally {
+      setPendingRequestIds((v) => ({ ...v, [listingId]: false }));
+    }
   };
 
   const fileToDataUrl = (file: File) =>
@@ -153,6 +162,7 @@ export const FarmerDashboard: React.FC = () => {
 
   const handleCreateNotice = () => {
     if (!user) return;
+    if (isCreatingNotice) return;
     if (
       !noticeForm.title ||
       !noticeForm.details ||
@@ -163,19 +173,24 @@ export const FarmerDashboard: React.FC = () => {
       toast.error("Complète tous les champs et ajoute une photo de l'exploitation.");
       return;
     }
-    createFarmerNotice({
-      farmerId: user.id,
-      farmerName: user.name,
-      title: noticeForm.title,
-      details: noticeForm.details,
-      location: noticeForm.location,
-      mainCrop: noticeForm.mainCrop,
-      farmPhoto: noticeForm.farmPhoto,
-    });
-    setNoticeForm({ title: "", details: "", location: "", mainCrop: "", farmPhoto: "" });
-    setShowNoticeForm(false);
-    refreshData();
-    toast.success("Annonce publiée, en attente de validation.");
+    setIsCreatingNotice(true);
+    try {
+      createFarmerNotice({
+        farmerId: user.id,
+        farmerName: user.name,
+        title: noticeForm.title,
+        details: noticeForm.details,
+        location: noticeForm.location,
+        mainCrop: noticeForm.mainCrop,
+        farmPhoto: noticeForm.farmPhoto,
+      });
+      setNoticeForm({ title: "", details: "", location: "", mainCrop: "", farmPhoto: "" });
+      setShowNoticeForm(false);
+      refreshData();
+      toast.success("Annonce publiée, en attente de validation.");
+    } finally {
+      setIsCreatingNotice(false);
+    }
   };
 
   return (
@@ -270,8 +285,10 @@ export const FarmerDashboard: React.FC = () => {
               />
               <button
                 onClick={handleCreateNotice}
-                className="bg-[#1B5E20] text-white rounded-xl px-3 py-2 font-bold md:col-span-2"
+                disabled={isCreatingNotice}
+                className="bg-[#1B5E20] text-white rounded-xl px-3 py-2 font-bold md:col-span-2 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
+                {isCreatingNotice && <Spinner className="text-white" />}
                 Envoyer pour validation
               </button>
             </div>
@@ -325,8 +342,10 @@ export const FarmerDashboard: React.FC = () => {
                   <p className="text-[#1B5E20] font-bold">{item.price}</p>
                   <button
                     onClick={() => handleAction(item.id)}
-                    className="bg-[#1B5E20] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#1B5E20]/90"
+                    disabled={!!pendingRequestIds[item.id]}
+                    className="bg-[#1B5E20] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#1B5E20]/90 disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center gap-2"
                   >
+                    {pendingRequestIds[item.id] && <Spinner className="text-white" />}
                     Demander
                   </button>
                 </div>

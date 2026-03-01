@@ -12,6 +12,7 @@ import {
 } from "../lib/marketplace";
 import { useAuth } from "../context/AuthContext";
 import { useSearchParams } from "react-router-dom";
+import { Spinner } from "../components/ui/spinner";
 
 const DEFAULT_TRACTOR_IMAGE =
   "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/tractor-rental-cd75fcfa-1772288681160.webp";
@@ -22,6 +23,8 @@ export const OwnerDashboard: React.FC = () => {
   const currentSection = searchParams.get("section") || "aperçu";
   const [refreshToken, setRefreshToken] = useState(0);
   const [showForm, setShowForm] = useState(false);
+  const [isPublishingEquipment, setIsPublishingEquipment] = useState(false);
+  const [pendingRequestIds, setPendingRequestIds] = useState<Record<string, boolean>>({});
   const topRef = useRef<HTMLDivElement | null>(null);
   const fleetRef = useRef<HTMLDivElement | null>(null);
   const rentalsRef = useRef<HTMLDivElement | null>(null);
@@ -49,23 +52,29 @@ export const OwnerDashboard: React.FC = () => {
 
   const handleAddEquipment = () => {
     if (!user) return;
+    if (isPublishingEquipment) return;
     if (!newEquipment.name || !newEquipment.price || !newEquipment.location || !newEquipment.img) {
       toast.error("Complète les champs requis.");
       return;
     }
-    createListing({
-      type: "tracteur",
-      name: newEquipment.name,
-      price: newEquipment.price,
-      location: newEquipment.location,
-      img: newEquipment.img || DEFAULT_TRACTOR_IMAGE,
-      ownerId: user.id,
-      ownerName: user.name,
-    });
-    setRefreshToken((v) => v + 1);
-    setShowForm(false);
-    setNewEquipment({ name: "", price: "", location: "", img: "" });
-    toast.success("Équipement ajouté. En attente de validation admin.");
+    setIsPublishingEquipment(true);
+    try {
+      createListing({
+        type: "tracteur",
+        name: newEquipment.name,
+        price: newEquipment.price,
+        location: newEquipment.location,
+        img: newEquipment.img || DEFAULT_TRACTOR_IMAGE,
+        ownerId: user.id,
+        ownerName: user.name,
+      });
+      setRefreshToken((v) => v + 1);
+      setShowForm(false);
+      setNewEquipment({ name: "", price: "", location: "", img: "" });
+      toast.success("Équipement ajouté. En attente de validation admin.");
+    } finally {
+      setIsPublishingEquipment(false);
+    }
   };
 
   const fileToDataUrl = (file: File) =>
@@ -84,9 +93,15 @@ export const OwnerDashboard: React.FC = () => {
   };
 
   const handleRequestStatus = (requestId: string, status: "approved" | "rejected") => {
-    updateRequestStatus(requestId, status);
-    setRefreshToken((v) => v + 1);
-    toast.success(status === "approved" ? "Demande approuvée" : "Demande refusée");
+    if (pendingRequestIds[requestId]) return;
+    setPendingRequestIds((v) => ({ ...v, [requestId]: true }));
+    try {
+      updateRequestStatus(requestId, status);
+      setRefreshToken((v) => v + 1);
+      toast.success(status === "approved" ? "Demande approuvée" : "Demande refusée");
+    } finally {
+      setPendingRequestIds((v) => ({ ...v, [requestId]: false }));
+    }
   };
 
   useEffect(() => {
@@ -209,8 +224,10 @@ export const OwnerDashboard: React.FC = () => {
             />
             <button
               onClick={handleAddEquipment}
-              className="bg-[#1B5E20] text-white rounded-xl px-3 py-2 font-bold"
+              disabled={isPublishingEquipment}
+              className="bg-[#1B5E20] text-white rounded-xl px-3 py-2 font-bold disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center gap-2 justify-center"
             >
+              {isPublishingEquipment && <Spinner className="text-white" />}
               Publier
             </button>
             {newEquipment.img && (
@@ -322,14 +339,18 @@ export const OwnerDashboard: React.FC = () => {
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => handleRequestStatus(r.id, "approved")}
-                        className="bg-[#1B5E20] text-white py-2 rounded-lg text-xs font-bold flex justify-center"
+                        disabled={!!pendingRequestIds[r.id]}
+                        className="bg-[#1B5E20] text-white py-2 rounded-lg text-xs font-bold flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                       >
+                        {pendingRequestIds[r.id] && <Spinner className="text-white size-3" />}
                         <Check className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleRequestStatus(r.id, "rejected")}
-                        className="bg-slate-100 text-slate-600 py-2 rounded-lg text-xs font-bold flex justify-center"
+                        disabled={!!pendingRequestIds[r.id]}
+                        className="bg-slate-100 text-slate-600 py-2 rounded-lg text-xs font-bold flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                       >
+                        {pendingRequestIds[r.id] && <Spinner className="text-slate-600 size-3" />}
                         <X className="w-4 h-4" />
                       </button>
                     </div>

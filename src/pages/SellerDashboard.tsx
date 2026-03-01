@@ -11,6 +11,7 @@ import {
 } from "../lib/marketplace";
 import { useAuth } from "../context/AuthContext";
 import { useSearchParams } from "react-router-dom";
+import { Spinner } from "../components/ui/spinner";
 
 const DEFAULT_SEED_IMAGE =
   "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/seed-warehouse-0d49e033-1772288681575.webp";
@@ -21,6 +22,8 @@ export const SellerDashboard: React.FC = () => {
   const currentSection = searchParams.get("section") || "aperçu";
   const [refreshToken, setRefreshToken] = useState(0);
   const [showForm, setShowForm] = useState(false);
+  const [isPublishingProduct, setIsPublishingProduct] = useState(false);
+  const [pendingOrderIds, setPendingOrderIds] = useState<Record<string, boolean>>({});
   const topRef = useRef<HTMLDivElement | null>(null);
   const productsRef = useRef<HTMLDivElement | null>(null);
   const salesRef = useRef<HTMLDivElement | null>(null);
@@ -92,30 +95,42 @@ export const SellerDashboard: React.FC = () => {
 
   const handleAddProduct = () => {
     if (!user) return;
+    if (isPublishingProduct) return;
     if (!newProduct.name || !newProduct.price || !newProduct.location || !newProduct.img) {
       toast.error("Complète les champs requis.");
       return;
     }
-    createListing({
-      type: "semence",
-      name: newProduct.name,
-      price: newProduct.price,
-      location: newProduct.location,
-      img: newProduct.img || DEFAULT_SEED_IMAGE,
-      stock: Number(newProduct.stock || "0"),
-      ownerId: user.id,
-      ownerName: user.name,
-    });
-    setRefreshToken((v) => v + 1);
-    setShowForm(false);
-    resetForm();
-    toast.success("Produit ajouté. En attente de validation admin.");
+    setIsPublishingProduct(true);
+    try {
+      createListing({
+        type: "semence",
+        name: newProduct.name,
+        price: newProduct.price,
+        location: newProduct.location,
+        img: newProduct.img || DEFAULT_SEED_IMAGE,
+        stock: Number(newProduct.stock || "0"),
+        ownerId: user.id,
+        ownerName: user.name,
+      });
+      setRefreshToken((v) => v + 1);
+      setShowForm(false);
+      resetForm();
+      toast.success("Produit ajouté. En attente de validation admin.");
+    } finally {
+      setIsPublishingProduct(false);
+    }
   };
 
   const handleOrderStatus = (requestId: string, status: "approved" | "rejected") => {
-    updateRequestStatus(requestId, status);
-    setRefreshToken((v) => v + 1);
-    toast.success(status === "approved" ? "Commande approuvée" : "Commande rejetée");
+    if (pendingOrderIds[requestId]) return;
+    setPendingOrderIds((v) => ({ ...v, [requestId]: true }));
+    try {
+      updateRequestStatus(requestId, status);
+      setRefreshToken((v) => v + 1);
+      toast.success(status === "approved" ? "Commande approuvée" : "Commande rejetée");
+    } finally {
+      setPendingOrderIds((v) => ({ ...v, [requestId]: false }));
+    }
   };
 
   useEffect(() => {
@@ -196,8 +211,10 @@ export const SellerDashboard: React.FC = () => {
             />
             <button
               onClick={handleAddProduct}
-              className="bg-[#1B5E20] text-white rounded-xl px-3 py-2 font-bold"
+              disabled={isPublishingProduct}
+              className="bg-[#1B5E20] text-white rounded-xl px-3 py-2 font-bold disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center gap-2 justify-center"
             >
+              {isPublishingProduct && <Spinner className="text-white" />}
               Publier
             </button>
             {newProduct.img && (
@@ -296,16 +313,20 @@ export const SellerDashboard: React.FC = () => {
                         <>
                           <button
                             onClick={() => handleOrderStatus(o.id, "approved")}
-                            className="p-1 bg-green-100 text-green-600 rounded"
+                            disabled={!!pendingOrderIds[o.id]}
+                            className="p-1 bg-green-100 text-green-600 rounded disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center gap-1"
                             title="Approuver"
                           >
+                            {pendingOrderIds[o.id] && <Spinner className="text-green-600 size-3" />}
                             <Check className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleOrderStatus(o.id, "rejected")}
-                            className="p-1 bg-red-100 text-red-600 rounded"
+                            disabled={!!pendingOrderIds[o.id]}
+                            className="p-1 bg-red-100 text-red-600 rounded disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center gap-1"
                             title="Rejeter"
                           >
+                            {pendingOrderIds[o.id] && <Spinner className="text-red-600 size-3" />}
                             <X className="w-4 h-4" />
                           </button>
                         </>
