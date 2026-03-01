@@ -4,6 +4,7 @@ import { useAuth, UserRole, UserProfile } from '../context/AuthContext';
 import { Mail, User, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Spinner } from '../components/ui/spinner';
+import { optimizeImageFileToDataUrl } from '../lib/image';
 
 const AUTH_BG = "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/auth-bg-28b13e38-1772289441656.webp";
 
@@ -138,37 +139,37 @@ export const RegisterPage: React.FC = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const fileToDataUrl = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ''));
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-
   const handlePhotoUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     target: 'farmer' | 'seller' | 'owner',
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const dataUrl = await fileToDataUrl(file);
-    if (target === 'farmer') {
-      setFarmerForm((v) => ({ ...v, photoExploitation: dataUrl }));
-      return;
+    try {
+      const dataUrl = await optimizeImageFileToDataUrl(file, { maxWidth: 1280, maxHeight: 1280, quality: 0.72 });
+      if (target === 'farmer') {
+        setFarmerForm((v) => ({ ...v, photoExploitation: dataUrl }));
+        return;
+      }
+      if (target === 'seller') {
+        setSellerForm((v) => ({ ...v, photoCommerce: dataUrl }));
+        return;
+      }
+      setOwnerForm((v) => ({ ...v, photoParc: dataUrl }));
+    } catch {
+      toast.error("Impossible de traiter l'image.");
     }
-    if (target === 'seller') {
-      setSellerForm((v) => ({ ...v, photoCommerce: dataUrl }));
-      return;
-    }
-    setOwnerForm((v) => ({ ...v, photoParc: dataUrl }));
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const dataUrl = await fileToDataUrl(file);
-    setAvatar(dataUrl);
+    try {
+      const dataUrl = await optimizeImageFileToDataUrl(file, { maxWidth: 512, maxHeight: 512, quality: 0.75 });
+      setAvatar(dataUrl);
+    } catch {
+      toast.error("Impossible de traiter l'image de profil.");
+    }
   };
 
   const buildProfile = (): UserProfile | undefined => {

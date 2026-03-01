@@ -102,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const login: AuthContextType['login'] = async (email, password, role) => {
+    try {
     const cleanEmail = normalizeEmail(email);
     if (!cleanEmail || !password || !role) {
       return { ok: false, message: 'Email, mot de passe et rôle sont requis.' };
@@ -140,6 +141,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(nextUser);
     localStorage.setItem(SESSION_KEY, JSON.stringify(nextUser));
     return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        message: error instanceof Error ? error.message : "Erreur de connexion.",
+      };
+    }
   };
 
   const register: AuthContextType['register'] = async (
@@ -150,6 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     profile,
     avatar,
   ) => {
+    try {
     const cleanEmail = normalizeEmail(email);
     if (!name.trim() || !cleanEmail || !role) {
       return { ok: false, message: 'Nom, email et rôle sont requis.' };
@@ -191,6 +199,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(sessionUser);
     localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser));
     return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        message: error instanceof Error ? error.message : "Erreur d'inscription.",
+      };
+    }
   };
 
   const logout = () => {

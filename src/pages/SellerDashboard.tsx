@@ -12,6 +12,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useSearchParams } from "react-router-dom";
 import { Spinner } from "../components/ui/spinner";
+import { optimizeImageFileToDataUrl } from "../lib/image";
 
 const DEFAULT_SEED_IMAGE =
   "https://storage.googleapis.com/dala-prod-public-storage/generated-images/456b8acf-79dd-41b0-a081-885aa8a51798/seed-warehouse-0d49e033-1772288681575.webp";
@@ -78,19 +79,19 @@ export const SellerDashboard: React.FC = () => {
       img: "",
     });
 
-  const fileToDataUrl = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ""));
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-
   const handleProductPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const dataUrl = await fileToDataUrl(file);
-    setNewProduct((v) => ({ ...v, img: dataUrl }));
+    try {
+      const dataUrl = await optimizeImageFileToDataUrl(file, {
+        maxWidth: 1280,
+        maxHeight: 1280,
+        quality: 0.72,
+      });
+      setNewProduct((v) => ({ ...v, img: dataUrl }));
+    } catch {
+      toast.error("Impossible de traiter l'image.");
+    }
   };
 
   const handleAddProduct = () => {
@@ -116,6 +117,8 @@ export const SellerDashboard: React.FC = () => {
       setShowForm(false);
       resetForm();
       toast.success("Produit ajouté. En attente de validation admin.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Impossible de publier le produit.");
     } finally {
       setIsPublishingProduct(false);
     }
@@ -128,6 +131,8 @@ export const SellerDashboard: React.FC = () => {
       updateRequestStatus(requestId, status);
       setRefreshToken((v) => v + 1);
       toast.success(status === "approved" ? "Commande approuvée" : "Commande rejetée");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Action impossible.");
     } finally {
       setPendingOrderIds((v) => ({ ...v, [requestId]: false }));
     }

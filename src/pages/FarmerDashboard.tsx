@@ -10,6 +10,7 @@ import { useSearchParams } from "react-router-dom";
 import { createFarmerNotice, listFarmerNotices } from "../lib/marketplace";
 import { listApprovedAnnouncements } from "../lib/marketplace";
 import { Spinner } from "../components/ui/spinner";
+import { optimizeImageFileToDataUrl } from "../lib/image";
 
 export const FarmerDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -140,24 +141,26 @@ export const FarmerDashboard: React.FC = () => {
 
       refreshData();
       toast.success(`Demande envoyée pour ${listing.name}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Impossible d'envoyer la demande.");
     } finally {
       setPendingRequestIds((v) => ({ ...v, [listingId]: false }));
     }
   };
 
-  const fileToDataUrl = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ""));
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-
   const handleNoticePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const dataUrl = await fileToDataUrl(file);
-    setNoticeForm((v) => ({ ...v, farmPhoto: dataUrl }));
+    try {
+      const dataUrl = await optimizeImageFileToDataUrl(file, {
+        maxWidth: 1280,
+        maxHeight: 1280,
+        quality: 0.72,
+      });
+      setNoticeForm((v) => ({ ...v, farmPhoto: dataUrl }));
+    } catch {
+      toast.error("Impossible de traiter l'image.");
+    }
   };
 
   const handleCreateNotice = () => {
@@ -188,6 +191,8 @@ export const FarmerDashboard: React.FC = () => {
       setShowNoticeForm(false);
       refreshData();
       toast.success("Annonce publiée, en attente de validation.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Impossible de publier l'annonce.");
     } finally {
       setIsCreatingNotice(false);
     }

@@ -59,6 +59,8 @@ export const AdminDashboard: React.FC = () => {
       updateListingStatus(listingId, action);
       setRefreshToken((v) => v + 1);
       toast.success(action === "approved" ? "Annonce approuvée" : "Annonce rejetée");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Action impossible.");
     } finally {
       setPendingListingIds((v) => ({ ...v, [listingId]: false }));
     }
@@ -71,6 +73,8 @@ export const AdminDashboard: React.FC = () => {
       updateFarmerNoticeStatus(noticeId, action);
       setRefreshToken((v) => v + 1);
       toast.success(action === "approved" ? "Annonce agriculteur approuvée" : "Annonce agriculteur rejetée");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Action impossible.");
     } finally {
       setPendingNoticeIds((v) => ({ ...v, [noticeId]: false }));
     }

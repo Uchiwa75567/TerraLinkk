@@ -10,6 +10,7 @@ import { OwnerDashboard } from './pages/OwnerDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import PublicProfilesPage from './pages/PublicProfilesPage';
 import PublicProfileDetailPage from './pages/PublicProfileDetailPage';
+import { syncDbWithRemote } from './lib/db';
 
 const DashboardRouter = () => {
   const { user } = useAuth();
@@ -26,6 +27,20 @@ const DashboardRouter = () => {
 };
 
 const App: React.FC = () => {
+  const [dbReady, setDbReady] = React.useState(false);
+
+  React.useEffect(() => {
+    let mounted = true;
+    void syncDbWithRemote().finally(() => {
+      if (mounted) setDbReady(true);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!dbReady) return null;
+
   return (
     <AuthProvider>
       <BrowserRouter>
